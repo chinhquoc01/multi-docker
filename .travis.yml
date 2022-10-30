@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t quocpc/react-test -f ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run quocpc/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t quocpc/multi-client ./client
+  - docker build -t quocpc/multi-nginx ./nginx
+  - docker build -t quocpc/multi-server ./server
+  - docker build -t quocpc/multi-worker ./worker
+
+  # login to docker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push quocpc/multi-client
+  - docker push quocpc/multi-nginx
+  - docker push quocpc/multi-server
+  - docker push quocpc/multi-worker
